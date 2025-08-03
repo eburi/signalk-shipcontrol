@@ -87,13 +87,11 @@ export default function (app: ServerAPI): Plugin {
             properties: {
               tankName: {
                 type: 'string',
-                title: 'Name of the Tank in Shore Control',
-                default: 'EP_1',
+                title: 'Name of the Tank in Shore Control (EP_1).',
               },
               path: {
                 type: 'string',
                 title: 'SignalK Path for this tank (e.g. tanks.freshWater.0)',
-                default: 'tanks.freshWater.0',
               },
             },
           },
