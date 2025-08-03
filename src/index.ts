@@ -27,8 +27,8 @@ export default function (app: ServerAPI): Plugin {
   const plugin: Plugin = {
     start: function (props: any) {
       wsConnection = new ShipControlWsClient(
-        props.shoreControllIp,
-        props.shoreControllWsPort,
+        props.shipControllIp,
+        props.shipControllWsPort,
         error,
         debug,
       )
@@ -61,19 +61,19 @@ export default function (app: ServerAPI): Plugin {
 
     enabledByDefault: false,
     id: 'signalk-shipcontrol',
-    name: 'Ship Control adapter for SignalK',
+    name: 'Ship Control Adapter',
     description:
-      'Plugin that connectes to Ship Control and provides information to SignalK like tank levels',
+      'Plugin that connects to Ship Control and provides information to SignalK like tank levels.',
     schema: {
       type: 'object',
-      required: ['shoreControllIp', 'shoreControllWsPort'],
+      required: ['shipControllIp', 'shipControllWsPort'],
       properties: {
-        shoreControllIp: {
+        shipControllIp: {
           type: 'string',
           title: 'IP address of Shore Control Server',
           default: undefined,
         },
-        shoreControllWsPort: {
+        shipControllWsPort: {
           type: 'string',
           title: 'Websocket Port',
           default: undefined,
