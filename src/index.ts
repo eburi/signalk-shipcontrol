@@ -4,7 +4,7 @@ import {
   ShipControlWsClient,
   TankInformationRecord,
 } from './shipcontrol-ws-client'
-import { PathValue, Update } from '@signalk/server-api/dist/deltas'
+import { PathValue } from '@signalk/server-api/dist/deltas'
 
 export default function (app: ServerAPI): Plugin {
   const error =
@@ -12,7 +12,7 @@ export default function (app: ServerAPI): Plugin {
     ((msg: string) => {
       console.error(msg)
     })
-  const debug = app.debug || ((msg: string) => {})
+  const debug = app.debug || (() => {})
 
   function updatePath(path: string, val: Value) {
     app.handleMessage(plugin.id, {
