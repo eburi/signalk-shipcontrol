@@ -8,7 +8,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/panaaj/signalk-flags.git"
+    "url": "git+https://github.com/eburi/signalk-shipcontrol.git"
   },
   "author": "eburi",
   "license": "Apache-20",
