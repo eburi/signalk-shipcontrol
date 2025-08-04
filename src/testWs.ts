@@ -4,7 +4,7 @@ const wsConnection = new ShipControlWsClient(
   'localhost',
   '9474',
   (...messages) => console.error('Error: ', ...messages),
-  () => {}, //  (...messages) => console.log('Log: ', ...messages),
+  (...messages) => console.log('Log: ', ...messages),
 )
 
 console.log('connecting')
@@ -21,7 +21,9 @@ wsConnection.addBatteryInformationUpdateListener((batterInformation) => {
     `🆕 Information for battery: ${batterInformation.name} - Voltage: ${
       batterInformation.voltage
     } V, Current: ${batterInformation.current} A SoC: ${
-      batterInformation.stateOfCharge * 100
+      batterInformation.stateOfCharge
+        ? batterInformation.stateOfCharge * 100
+        : 'n/a'
     } %`,
   )
 })

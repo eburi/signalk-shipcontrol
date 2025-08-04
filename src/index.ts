@@ -86,7 +86,9 @@ export default function (app: ServerAPI): Plugin {
               },
               {
                 path: `${batteryMapping.path}.capacity.stateOfCharge` as Path,
-                value: batteryInformation.stateOfCharge,
+                value: batteryInformation.stateOfCharge
+                  ? batteryInformation.stateOfCharge / 100 // convert to ratio
+                  : null,
               },
             ]
             if (batteryMapping.alias) {

@@ -31,7 +31,7 @@ interface BatteryMessage extends ShipControlMessage {
   battery_module_id: number
   battery_nb_of_ibs: number
   battery_nominal_capacity: number
-  battery_state_of_charge: number
+  battery_state_of_charge: number // Actual SoC (100 => 100%, 255 => n/a)
   battery_state_of_health: number
   battery_temperature: number
   battery_temperature_level: string // e.g. GREEN
@@ -58,7 +58,7 @@ export interface BatteryInformationRecord {
   name: string
   voltage: number
   current: number
-  stateOfCharge: number
+  stateOfCharge: number | null
   healthLevel: string
   moduleId: number
 }
@@ -269,7 +269,10 @@ export class ShipControlWsClient {
       name: batteryMessage.battery_type,
       voltage: batteryMessage.battery_voltage_level,
       current: batteryMessage.battery_current,
-      stateOfCharge: batteryMessage.battery_state_of_charge / 255,
+      stateOfCharge:
+        batteryMessage.battery_state_of_charge === 255
+          ? null
+          : batteryMessage.battery_state_of_charge,
       healthLevel: batteryMessage.battery_health_level,
       moduleId: batteryMessage.battery_module_id,
     }
