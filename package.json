@@ -1,6 +1,6 @@
 {
   "name": "signalk-shipcontrol",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Get data like tank readings from Ship Control. If you have Ship Control on your boat, you can use this plugin to read data displayed in Ship Control",
   "main": "plugin/index.js",
   "keywords": [
