@@ -32,6 +32,13 @@ export default function (app: ServerAPI): Plugin {
         error,
         debug,
       )
+      wsConnection.addErrorListener((err) => {
+        error(
+          `❌ Error from WS-Connection (${props.shipControllIp}:${
+            props.shipControllWsPort
+          }): ${JSON.stringify(err)}`,
+        )
+      })
       wsConnection.addTankInformationUpdateListener(
         (tankInformation: TankInformationRecord) => {
           const path = props.tankMappings.find(

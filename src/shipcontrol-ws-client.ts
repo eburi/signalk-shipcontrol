@@ -1,6 +1,7 @@
 import WebSocket from 'ws'
 
 const HEARTBEAT_INTERVAL_MS = 5000
+const INFORMATION_REQUEST_INTERVAL_MS = 10000
 const RECONNECT_DELAY_MS = 3000
 
 interface ShipControlMessage {
@@ -30,12 +31,14 @@ export interface TankInformationRecord {
 const tankInformationStore: { [tankType: string]: TankInformationRecord } = {}
 
 export class ShipControlWsClient {
+  private errorListeners: Array<(error: Error) => void> = []
   private tankInformationUpdateListeners: Array<
     (tankInformation: TankInformationRecord) => void
   > = []
   private url: string
   private socket: WebSocket | null = null
   private heartbeatInterval: NodeJS.Timeout | null = null
+  private tankInformationRequestInterval: NodeJS.Timeout | null = null
   private error: (...messages: string[]) => void
   private debug: (...messages: string[]) => void
 
@@ -57,6 +60,7 @@ export class ShipControlWsClient {
     this.socket.on('open', () => {
       this.debug('✅ WebSocket connected.')
       this.startHeartbeat()
+      this.startTankInformationRequest()
     })
 
     this.socket.on('message', (data: WebSocket.RawData) => {
@@ -66,6 +70,7 @@ export class ShipControlWsClient {
     this.socket.on('close', (code, reason) => {
       this.error(`⚠️ WebSocket closed: ${code} - ${reason.toString()}`)
       this.stopHeartbeat()
+      this.stopTankInformationRequest()
       if (this.socket) {
         this.debug(
           `🔁 will try to reconnect in ${RECONNECT_DELAY_MS / 1000}s...`,
@@ -76,12 +81,17 @@ export class ShipControlWsClient {
 
     this.socket.on('error', (error) => {
       this.error('❌ WebSocket error:', error.toString())
+      this.notifyErrorListeners(error)
     })
   }
 
   public disconnect(): void {
     this.socket?.close()
     this.socket = null
+  }
+
+  public addErrorListener(listener: (error: Error) => void): void {
+    this.errorListeners.push(listener)
   }
 
   public addTankInformationUpdateListener(
@@ -103,6 +113,28 @@ export class ShipControlWsClient {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval)
       this.heartbeatInterval = null
+    }
+  }
+
+  private startTankInformationRequest(): void {
+    this.tankInformationRequestInterval = setInterval(() => {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(
+          JSON.stringify({
+            cmd: 'fetch_map',
+            params: 'Tanks',
+            callback_id: 1,
+          }),
+        )
+        this.debug('⬆️ Sent: Tank information request')
+      }
+    }, INFORMATION_REQUEST_INTERVAL_MS)
+  }
+
+  private stopTankInformationRequest(): void {
+    if (this.tankInformationRequestInterval) {
+      clearInterval(this.tankInformationRequestInterval)
+      this.tankInformationRequestInterval = null
     }
   }
 
@@ -152,5 +184,9 @@ export class ShipControlWsClient {
     this.tankInformationUpdateListeners.forEach((listener) =>
       listener(tankInformation),
     )
+  }
+
+  private notifyErrorListeners(error: Error) {
+    this.errorListeners.forEach((listener) => listener(error))
   }
 }
