@@ -105,6 +105,7 @@ export class ShipControlWsClient {
       this.debug('✅ WebSocket connected.')
       this.startHeartbeat()
       this.startTankInformationRequest()
+      this.startBatteryInformationRequest()
     })
 
     this.socket.on('message', (data: WebSocket.RawData) => {
@@ -115,6 +116,7 @@ export class ShipControlWsClient {
       this.error(`⚠️ WebSocket closed: ${code} - ${reason.toString()}`)
       this.stopHeartbeat()
       this.stopTankInformationRequest()
+      this.stopBatteryInformationRequest()
       if (this.socket) {
         this.debug(
           `🔁 will try to reconnect in ${RECONNECT_DELAY_MS / 1000}s...`,

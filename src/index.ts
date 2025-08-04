@@ -4,6 +4,7 @@ import {
   ShipControlWsClient,
   TankInformationRecord,
 } from './shipcontrol-ws-client'
+import { PathValue, Update } from '@signalk/server-api/dist/deltas'
 
 export default function (app: ServerAPI): Plugin {
   const error =
@@ -20,6 +21,12 @@ export default function (app: ServerAPI): Plugin {
   function updatePath(path: string, val: Value) {
     app.handleMessage(plugin.id, {
       updates: [{ values: [{ path: path as Path, value: val }] }],
+    })
+  }
+
+  function updatePaths(values: PathValue[]) {
+    app.handleMessage(plugin.id, {
+      updates: [{ values }],
     })
   }
 
@@ -58,18 +65,37 @@ export default function (app: ServerAPI): Plugin {
       )
       wsConnection.addBatteryInformationUpdateListener(
         (batteryInformation: BatteryInformationRecord) => {
-          const path = props.batteryMappings.find(
+          const batteryMapping = props.batteryMappings.find(
             ({ batteryName }: { batteryName: string }) =>
               batteryName === batteryInformation.name,
-          )?.path
+          )
 
-          if (path) {
-            updatePath(`${path}.voltage`, batteryInformation.voltage)
-            updatePath(`${path}.current`, batteryInformation.current)
-            updatePath(
-              `${path}.capacity.stateOfCharge`,
-              batteryInformation.stateOfCharge,
-            )
+          if (batteryMapping?.path) {
+            const valuesToUpdate: PathValue[] = [
+              {
+                path: `${batteryMapping.path}.voltage` as Path,
+                value: batteryInformation.voltage,
+              },
+              {
+                path: `${batteryMapping.path}.current` as Path,
+                value: batteryInformation.current,
+              },
+              {
+                path: `${batteryMapping.path}.capacity.stateOfCharge` as Path,
+                value: batteryInformation.stateOfCharge,
+              },
+              {
+                path: `${batteryMapping.path}.capacity.stateOfCharge` as Path,
+                value: batteryInformation.stateOfCharge,
+              },
+            ]
+            if (batteryMapping.alias) {
+              valuesToUpdate.push({
+                path: `${batteryMapping.path}.alias` as Path,
+                value: batteryMapping.alias,
+              })
+            }
+            updatePaths(valuesToUpdate)
           } else {
             debug(
               `Could not find a battery-mapping for battery with name ${batteryInformation.name}`,
@@ -99,7 +125,7 @@ export default function (app: ServerAPI): Plugin {
       properties: {
         shipControllIp: {
           type: 'string',
-          title: 'IP address of Shore Control Server',
+          title: 'IP address of Ship Control Server',
           default: undefined,
         },
         shipControllWsPort: {
@@ -116,7 +142,7 @@ export default function (app: ServerAPI): Plugin {
             properties: {
               tankName: {
                 type: 'string',
-                title: 'Name of the Tank in Shore Control (EP_1).',
+                title: 'Name of the Tank in Ship Control (EP_1).',
               },
               path: {
                 type: 'string',
@@ -134,12 +160,17 @@ export default function (app: ServerAPI): Plugin {
             properties: {
               batteryName: {
                 type: 'string',
-                title: 'Name of the battery in Shore Control (GE_TD).',
+                title: 'Name of the battery in Ship Control (GE_TD).',
               },
               path: {
                 type: 'string',
                 title:
                   'SignalK Path for this battery (e.g. electrical.batteries.10). voltage, current and capacity.stateOfCharge will be added',
+              },
+              alias: {
+                type: 'string',
+                title:
+                  'Alias for this battery (e.g. Generator Starboard) will be added for informational purpose, if present',
               },
             },
           },
