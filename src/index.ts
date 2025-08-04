@@ -12,11 +12,7 @@ export default function (app: ServerAPI): Plugin {
     ((msg: string) => {
       console.error(msg)
     })
-  const debug =
-    app.debug ||
-    ((msg: string) => {
-      console.log(msg)
-    })
+  const debug = app.debug || ((msg: string) => {})
 
   function updatePath(path: string, val: Value) {
     app.handleMessage(plugin.id, {
