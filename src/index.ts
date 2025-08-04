@@ -1,5 +1,6 @@
 import { Path, Plugin, ServerAPI, Value } from '@signalk/server-api'
 import {
+  BatteryInformationRecord,
   ShipControlWsClient,
   TankInformationRecord,
 } from './shipcontrol-ws-client'
@@ -43,14 +44,35 @@ export default function (app: ServerAPI): Plugin {
         (tankInformation: TankInformationRecord) => {
           const path = props.tankMappings.find(
             ({ tankName }: { tankName: string }) =>
-              tankName === tankInformation.tankName,
+              tankName === tankInformation.name,
           )?.path
 
           if (path) {
-            updatePath(`${path}.currentLevel`, tankInformation.tankLevel / 100) // convert to ratio
+            updatePath(`${path}.currentLevel`, tankInformation.level / 100) // convert to ratio
           } else {
             debug(
-              `Could not find a tank-mapping for tank with name ${tankInformation.tankName}`,
+              `Could not find a tank-mapping for tank with name ${tankInformation.name}`,
+            )
+          }
+        },
+      )
+      wsConnection.addBatteryInformationUpdateListener(
+        (batteryInformation: BatteryInformationRecord) => {
+          const path = props.batteryMappings.find(
+            ({ batteryName }: { batteryName: string }) =>
+              batteryName === batteryInformation.name,
+          )?.path
+
+          if (path) {
+            updatePath(`${path}.voltage`, batteryInformation.voltage)
+            updatePath(`${path}.current`, batteryInformation.current)
+            updatePath(
+              `${path}.capacity.stateOfCharge`,
+              batteryInformation.stateOfCharge,
+            )
+          } else {
+            debug(
+              `Could not find a battery-mapping for battery with name ${batteryInformation.name}`,
             )
           }
         },
@@ -99,6 +121,25 @@ export default function (app: ServerAPI): Plugin {
               path: {
                 type: 'string',
                 title: 'SignalK Path for this tank (e.g. tanks.freshWater.0)',
+              },
+            },
+          },
+        },
+        batteryMappings: {
+          type: 'array',
+          title: 'Battery Mappings',
+          items: {
+            type: 'object',
+            required: ['batteryName', 'path'],
+            properties: {
+              batteryName: {
+                type: 'string',
+                title: 'Name of the battery in Shore Control (GE_TD).',
+              },
+              path: {
+                type: 'string',
+                title:
+                  'SignalK Path for this battery (e.g. electrical.batteries.10). voltage, current and capacity.stateOfCharge will be added',
               },
             },
           },

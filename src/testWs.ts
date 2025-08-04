@@ -4,7 +4,7 @@ const wsConnection = new ShipControlWsClient(
   'localhost',
   '9474',
   (...messages) => console.error('Error: ', ...messages),
-  (...messages) => console.log('Log: ', ...messages),
+  () => {}, //  (...messages) => console.log('Log: ', ...messages),
 )
 
 console.log('connecting')
@@ -13,7 +13,16 @@ wsConnection.addErrorListener((error) =>
 )
 wsConnection.addTankInformationUpdateListener((tankInformation) => {
   console.log(
-    `🆕 Information for tank: ${tankInformation.tankName} - Level: ${tankInformation.tankLevel}%`,
+    `🆕 Information for tank: ${tankInformation.name} - Level: ${tankInformation.level}%`,
+  )
+})
+wsConnection.addBatteryInformationUpdateListener((batterInformation) => {
+  console.log(
+    `🆕 Information for battery: ${batterInformation.name} - Voltage: ${
+      batterInformation.voltage
+    } V, Current: ${batterInformation.current} A SoC: ${
+      batterInformation.stateOfCharge * 100
+    } %`,
   )
 })
 wsConnection.connect()
